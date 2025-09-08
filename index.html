@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+        <div class="mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800 text-center mb-4">Calculator</h1>
+            <div class="bg-gray-50 rounded-xl p-4 border-2 border-gray-100">
+                <div id="display" class="text-right text-3xl font-mono text-gray-800 min-h-[40px] flex items-center justify-end">0</div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-4 gap-3">
+            <!-- Row 1 -->
+            <button onclick="clearAll()" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-4 rounded-xl transition-colors duration-200 col-span-2">Clear</button>
+            <button onclick="deleteLast()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 rounded-xl transition-colors duration-200">⌫</button>
+            <button onclick="appendOperator('/')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 rounded-xl transition-colors duration-200">÷</button>
+            
+            <!-- Row 2 -->
+            <button onclick="appendNumber('7')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">7</button>
+            <button onclick="appendNumber('8')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">8</button>
+            <button onclick="appendNumber('9')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">9</button>
+            <button onclick="appendOperator('*')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 rounded-xl transition-colors duration-200">×</button>
+            
+            <!-- Row 3 -->
+            <button onclick="appendNumber('4')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">4</button>
+            <button onclick="appendNumber('5')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">5</button>
+            <button onclick="appendNumber('6')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">6</button>
+            <button onclick="appendOperator('-')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 rounded-xl transition-colors duration-200">−</button>
+            
+            <!-- Row 4 -->
+            <button onclick="appendNumber('1')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">1</button>
+            <button onclick="appendNumber('2')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">2</button>
+            <button onclick="appendNumber('3')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">3</button>
+            <button onclick="appendOperator('+')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 rounded-xl transition-colors duration-200">+</button>
+            
+            <!-- Row 5 -->
+            <button onclick="appendNumber('0')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200 col-span-2">0</button>
+            <button onclick="appendNumber('.')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-4 rounded-xl transition-colors duration-200">.</button>
+            <button onclick="calculate()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-4 rounded-xl transition-colors duration-200">=</button>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let currentInput = '0';
+        let shouldResetDisplay = false;
+
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+
+        function appendNumber(number) {
+            if (shouldResetDisplay || currentInput === '0') {
+                currentInput = number;
+                shouldResetDisplay = false;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(operator) {
+            if (shouldResetDisplay) {
+                shouldResetDisplay = false;
+            }
+            
+            // Prevent multiple operators in a row
+            const lastChar = currentInput.slice(-1);
+            if (['+', '-', '*', '/'].includes(lastChar)) {
+                currentInput = currentInput.slice(0, -1) + operator;
+            } else {
+                currentInput += operator;
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentInput = '0';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                // Replace display operators with JavaScript operators
+                let expression = currentInput
+                    .replace(/×/g, '*')
+                    .replace(/÷/g, '/')
+                    .replace(/−/g, '-');
+                
+                // Evaluate the expression safely
+                let result = Function('"use strict"; return (' + expression + ')')();
+                
+                // Handle division by zero and other edge cases
+                if (!isFinite(result)) {
+                    currentInput = 'Error';
+                } else {
+                    // Round to avoid floating point precision issues
+                    result = Math.round(result * 100000000) / 100000000;
+                    currentInput = result.toString();
+                }
+                
+                shouldResetDisplay = true;
+                updateDisplay();
+            } catch (error) {
+                currentInput = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                appendNumber(key);
+            } else if (key === '.') {
+                appendNumber('.');
+            } else if (key === '+') {
+                appendOperator('+');
+            } else if (key === '-') {
+                appendOperator('-');
+            } else if (key === '*') {
+                appendOperator('*');
+            } else if (key === '/') {
+                event.preventDefault(); // Prevent browser search
+                appendOperator('/');
+            } else if (key === 'Enter' || key === '=') {
+                calculate();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                clearAll();
+            } else if (key === 'Backspace') {
+                deleteLast();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97bc59c8d0c3c464',t:'MTc1NzMxMjUzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
